@@ -1,0 +1,15 @@
+{
+  "name": "integration",
+  "version": "1.0.0",
+  "description": "integration testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest -w 1 --ci --verbose"
+  },
+  "author": "Piotr Karpala",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.4.2",
+    "node-fetch": "^2.6.0"
+  }
+}

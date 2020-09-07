@@ -1,0 +1,11 @@
+{
+  "moduleFileExtensions": ["js"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "coverageDirectory": "./coverage",
+  "verbose": true,
+  "bail": true,
+  "coverageReporters": ["lcov", "cobertura", "text"],
+  "testPathIgnorePatterns": ["/node_modules/", "files"],
+  "testResultsProcessor": "./node_modules/jest-junit-reporter"
+}

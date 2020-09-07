@@ -1,0 +1,42 @@
+{
+  "name": "tests-with-docker-compose",
+  "version": "1.0.0",
+  "description": "Integration tests with docker compose",
+  "scripts": {
+    "lint": "eslint --fix \"{src,tests}/**/*.{js,json}\"",
+    "format": "prettier --write \"{src,tests}/**/*.{js,json}\"",
+    "precommit": "lint-staged",
+    "start": "cd src && func start",
+    "test": "cross-env NODE_ENV=test jest \".*/unit/.*\\.(test|spec).js$\" -w 1 --config jest.json --collectCoverage --ci",
+    "test:dev": "cross-env NODE_ENV=test npm run -s test -- --watchAll",
+    "test:all": "cross-env NODE_ENV=test host=\"http://localhost:7071\" npm run -s test -- \".*/integration/.*\\.(test|spec).js$\" --watchAll --bail 10"
+  },
+  "author": "Piotr Karpala",
+  "dependencies": {
+    "mssql": "^6.2.1",
+    "sequelize": "^6.3.4"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.2",
+    "eslint": "^7.7.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-json": "^2.1.2",
+    "husky": "^4.2.5",
+    "jest": "26.1.0",
+    "jest-junit-reporter": "^1.1.0",
+    "lint-staged": "10.2.11",
+    "node-fetch": "^2.6.0",
+    "prettier": "2.0.5"
+  },
+  "lint-staged": {
+    "{src,tests}/**/*.{js,json}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  }
+}

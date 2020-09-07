@@ -1,0 +1,127 @@
+# Node.js Function App to Linux on Azure
+# Build a Node.js function app and deploy it to Azure as a Linux function app.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+  - master
+  - develop
+
+variables:
+  # Agent VM image name
+  vmImageName: "ubuntu-latest"
+  azureSubscription: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx"
+
+stages:
+  - stage: Build
+    displayName: Build stage
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: $(vmImageName)
+
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: "10.x"
+            displayName: "Install Node.js"
+
+          - script: |
+              if [ -f extensions.csproj ]
+              then
+                  dotnet build extensions.csproj --runtime ubuntu.16.04-x64 --output ./bin
+              fi
+            displayName: "Build extensions"
+
+          - script: npm i
+            displayName: "Install dependencies"
+
+          - task: Npm@1
+            displayName: "Lint code"
+            inputs:
+              command: "custom"
+              customCommand: "run lint --if-present"
+
+          - task: Npm@1
+            displayName: "Test code"
+            inputs:
+              command: "custom"
+              customCommand: "run test --if-present"
+
+          - task: ShellScript@2
+            displayName: "Run integration tests"
+            inputs:
+              scriptPath: "./test.sh"
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testRunner: JUnit
+              testResultsFiles: "**/test-report.xml"
+
+          - task: PublishCodeCoverageResults@1
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/*coverage.xml"
+              reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"
+
+          - script: |
+              npm ci --only=production
+              npm run build --if-present
+            displayName: "Prepare binaries"
+
+          - task: Bash@3
+            displayName: "Move src files to root"
+            inputs:
+              targetType: "inline"
+              script: |
+                mkdir -p $(Build.ArtifactStagingDirectory)/package
+                cp -r src/* $(Build.ArtifactStagingDirectory)/package/
+                cp host.json $(Build.ArtifactStagingDirectory)/package/
+                mv node_modules $(Build.ArtifactStagingDirectory)/package/
+                cp package.json $(Build.ArtifactStagingDirectory)/package/
+                cp package-lock.json $(Build.ArtifactStagingDirectory)/package/
+
+          - task: ArchiveFiles@2
+            displayName: "Archive files"
+            inputs:
+              rootFolderOrFile: "$(Build.ArtifactStagingDirectory)/package"
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+              replaceExistingArchive: true
+
+          - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            artifact: drop
+
+  - stage: Deploy
+    displayName: Deploy stage
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy
+        environment: Test
+        pool:
+          vmImage: $(vmImageName)
+        variables:
+          - group: node-fun-test
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureFunctionApp@1
+                  displayName: "Azure Functions App Deploy"
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: functionApp
+                    appName: $(functionAppName)
+                    package: "$(Pipeline.Workspace)/drop/$(Build.BuildId).zip"
+                    appSettings: |
+                      -WEBSITE_RUN_FROM_PACKAGE 1 
+                      -sqlDatabase "$(sqlDatabase)" 
+                      -sqlServer "$(sqlServer)" 
+                      -sqlPassword "$(sqlPassword)" 
+                      -sqlUsername "$(sqlUsername)"
+                    deploymentMethod: "runFromPackage"

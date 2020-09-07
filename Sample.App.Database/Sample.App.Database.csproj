@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Sample.App.Database</RootNamespace>
+    <AssemblyName>Sample.App.Database</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Beef.Database.Core" Version="3.1.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Schema\**\*.sql" />
+    <EmbeddedResource Include="Migrations\**\*.sql" />
+    <EmbeddedResource Include="Data\**\*.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Sample.App.Database.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Schema\Ref\" />
+  </ItemGroup>
+
+</Project>

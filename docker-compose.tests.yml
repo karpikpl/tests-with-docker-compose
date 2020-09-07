@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  tests:
+    image: node:latest
+    volumes:
+      - ./tests/integration:/code
+    working_dir: /code
+    environment:
+      host: "http://fun"
+    networks:
+      - azure-function-development
+    depends_on:
+      - seed
+    links:
+      - fun
+      - "seed:seed"
+    command: bash -c "npm i && while ping -c1 seed &>/dev/null; do sleep 1; done; echo 'Seed finished!' && npm test"
