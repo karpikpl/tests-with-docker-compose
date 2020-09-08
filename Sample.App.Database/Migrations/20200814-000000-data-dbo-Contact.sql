@@ -1,3 +1,8 @@
+/*
+ WORD OF CAUTION - in production senarios, test data should not be kept together with schema.
+ Ideally there are 2 seed projects. In prod deployments - only schema and ref data is deployed. For testing both schema and test data are deployed.
+*/
+
 SET IDENTITY_INSERT [dbo].[Contact]  ON
 GO
 INSERT [dbo].[Contact]
