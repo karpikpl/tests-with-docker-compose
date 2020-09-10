@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 networks:
   azure-function-development:
@@ -6,26 +6,31 @@ networks:
 
 services:
   seed:
-    image: mcr.microsoft.com/dotnet/core/sdk:3.1
+    build: ./Sample.App.Database
     volumes:
-      - ./Sample.App.Database:/code
+      - ./Sample.App.Database/scripts:/app/scripts
+      - ./Sample.App.Database/wait-for-it.sh:/app/wait-for-it.sh
     links:
       - db
     depends_on:
       - db
+    working_dir: /app
     command:
-      ["./wait-for-it.sh", "db:1433", "--", "dotnet", "run", "DropAndDatabase"]
-    working_dir: /code
-    environment:
-      Sample_App_ConnectionString: "Server=db; Database=$DB_NAME; User id=$DB_USER; Password=$DB_PASSWORD"
+      [
+        './wait-for-it.sh',
+        'db:1433',
+        '--',
+        'dotnet',
+        './out/Sample.App.Database.dll',
+        'Server=db,$DB_PORT;Database=$DB_NAME;User Id=$DB_USER;Password=$DB_PASSWORD;',
+      ]
     networks:
       - azure-function-development
-
   db:
     image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "$DB_PASSWORD"
+      ACCEPT_EULA: 'Y'
+      SA_PASSWORD: '$DB_PASSWORD'
     networks:
       - azure-function-development
 
@@ -33,17 +38,17 @@ services:
     build:
       context: .
       args:
-        LOCAL: "true"
+        LOCAL: 'true'
     environment:
-      AzureWebJobsStorage: "UseDevelopmentStorage=true"
-      FUNCTIONS_WORKER_RUNTIME: "node"
-      sqlServer: "db"
+      AzureWebJobsStorage: 'UseDevelopmentStorage=true'
+      FUNCTIONS_WORKER_RUNTIME: 'node'
+      sqlServer: 'db'
       sqlPort: 1433
-      sqlDatabase: "$DB_NAME"
-      sqlUsername: "$DB_USER"
-      sqlPassword: "$DB_PASSWORD"
+      sqlDatabase: '$DB_NAME'
+      sqlUsername: '$DB_USER'
+      sqlPassword: '$DB_PASSWORD'
     ports:
-      - "7071:80"
+      - '7071:80'
     depends_on:
       - seed
       - db
