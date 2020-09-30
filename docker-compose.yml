@@ -7,8 +7,11 @@ networks:
 services:
   seed:
     build: ./Sample.App.Database
+    environment:
+      INCLUDE_TEST_DATA: 'Y'
     volumes:
       - ./Sample.App.Database/scripts:/app/scripts
+      - ./Sample.App.Database/testData:/app/testData
       - ./Sample.App.Database/wait-for-it.sh:/app/wait-for-it.sh
     links:
       - db

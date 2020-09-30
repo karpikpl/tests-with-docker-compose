@@ -26,14 +26,20 @@ namespace Sample.App.Database
                 delay: 1000);
 
 
-            var dbup = DeployChanges.To
+            var dbupBuilder = DeployChanges.To
                 .SqlDatabase(connectionString)
                 .LogToConsole()
                 .LogScriptOutput()
                 .WithExecutionTimeout(TimeSpan.FromSeconds(30))
-                .WithScriptsFromFileSystem("./scripts")
-                .Build();
+                .WithScriptsFromFileSystem("./scripts");
 
+            if (System.Environment.GetEnvironmentVariable("INCLUDE_TEST_DATA") == "Y")
+            {
+                // in production deployments - do not include environment variable INCLUDE_TEST_DATA
+                dbupBuilder = dbupBuilder.WithScriptsFromFileSystem("./testData");
+            }
+
+            var dbup = dbupBuilder.Build();
 
             var result = dbup.PerformUpgrade();
 

@@ -33,6 +33,9 @@ There are 4 pre-configured ways of running tests with JEST:
 * `npm run test:all` - unit tests and integration tests executed in watch mode (they run after each file change). It requires function running locally at http://localhost:7071
 * `npm run test:int` - only integration tests executed in watch mode (they run after each file change). It requires function running locally at http://localhost:7071
 
+## Running sample function
+Sample function will expose 1 HTTP trigger: `GET localhost:7071/api/contacts`
+
 ## Developing with docker
 The easiest way is to run entire stack with docker-compose:
 ```bash
@@ -66,8 +69,8 @@ First create `local.env.docker` file:
 ```yaml
 AzureWebJobsStorage=UseDevelopmentStorage=true
 FUNCTIONS_WORKER_RUNTIME=node
-sqlServer=pka.database.windows.net
-sqlDatabase=nodejs-framework
+sqlServer=xxx.database.windows.net
+sqlDatabase=sampleDB
 sqlUsername=testUser
 sqlPassword=XXXXX
 ```
@@ -90,3 +93,4 @@ THis will run an empty SQL Server
 ```bash
 docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
 ```
+

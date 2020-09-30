@@ -4,12 +4,15 @@ services:
     build: .
     volumes:
       - ./scripts:/app/scripts
+      - ./testData:/app/testData
       - ./wait-for-it.sh:/app/wait-for-it.sh
     links:
       - db
     depends_on:
       - db
     working_dir: /app
+    environment:
+      INCLUDE_TEST_DATA: 'Y'
     command:
       [
         './wait-for-it.sh',
